@@ -16,8 +16,8 @@
 ; Add these procedures to your existing code
 
 ;-----------------------------
-; Display Balance Procedure
-DisplayBalance PROC
+; Display Current Balance Procedure
+DisplayCurrentBalance PROC
     MOV AH, 09h
     LEA DX, current_balance_msg
     INT 21h
@@ -40,12 +40,38 @@ DisplayBalance PROC
     CALL Print2Digit  ; Your existing procedure
     
     RET
-DisplayBalance ENDP
+DisplayCurrentBalance ENDP
+
+; Display New Balance Procedure
+DisplayNewBalance PROC
+    MOV AH, 09h
+    LEA DX, new_balance_msg
+    INT 21h
+    
+    ; Convert balance to RM display (divide by 100)
+    MOV AX, balance
+    MOV BX, 100
+    XOR DX, DX        ; Clear DX for division
+    DIV BX            ; AX = dollars, DX = cents
+    
+    ; Display dollar amount
+    CALL PrintNum
+    
+    ; Display decimal point and cents
+    MOV AH, 02h
+    MOV DL, '.'
+    INT 21h
+    
+    MOV AX, DX        ; Move cents to AX
+    CALL Print2Digit  ; Your existing procedure
+    
+    RET
+DisplayNewBalance ENDP
 
 ;-----------------------------
 ; Deposit Procedure
 Deposit PROC
-    CALL DisplayBalance
+    CALL DisplayCurrentBalance
     
     ; Prompt for deposit amount
     MOV AH, 09h
@@ -73,7 +99,7 @@ Deposit PROC
     MOV AH, 09h
     LEA DX, new_balance_msg
     INT 21h
-    CALL DisplayBalance
+    CALL DisplayNewBalance
     
     RET
 Deposit ENDP
@@ -81,7 +107,7 @@ Deposit ENDP
 ;-----------------------------
 ; Withdrawal Procedure
 Withdraw PROC
-    CALL DisplayBalance
+    CALL DisplayCurrentBalance
     
     ; Prompt for withdrawal amount
     MOV AH, 09h
@@ -113,7 +139,7 @@ Withdraw PROC
     MOV AH, 09h
     LEA DX, new_balance_msg
     INT 21h
-    CALL DisplayBalance
+    CALL DisplayNewBalance
     JMP WithdrawDone
     
 InsufficientFunds:
