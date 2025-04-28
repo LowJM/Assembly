@@ -3,13 +3,14 @@
 .DATA
 
   welcome_msg DB "Welcome to Public Bank System!$" ;welcome msg
-  options_msg DB "Please Choose a Function.(1=Deposit,2=Withdraw,3=fixed deposit,4=end session):$" ;choose 1 option
+  options_msg DB "Please Choose a Function.(1=Deposit,2=Withdraw,3=fixed deposit,4=back):$" ;choose 1 option
   input_char DB ?
   invalid_msg DB 0DH,0AH,"Invalid Option. Please try again.$"
   ;fong
   transaction_count dw 0  ; Counter variable
   exit_msg       db 13, 10, 'Session ended.', '$'
   ;vincent
+  display_interest DB "The current interest rate is 3.2% per annum$"
   deposit LABEL   BYTE
     max_len DB      6
     act_len DB      ?
@@ -32,6 +33,7 @@
 	count_msg      db 13, 10, 'Total transactions: $'
 	;error message for validation
 	err_year_0 DB "Invalid year. Please make sure at least 1 year", "$"
+	
 	;yong
 	current_balance_msg DB 13,10,"Current Balance: RM$"
     deposit_msg DB 13,10,"Enter deposit amount: RM$"
@@ -130,7 +132,10 @@ Functions:
     JE CallFD
 	
 	CMP AL, '4'
-    JE ExitProgram
+    JNE Exception_Handling
+	JMP main_menu
+	
+Exception_Handling:
     
     ; Invalid option
     MOV AH, 09H
@@ -211,6 +216,12 @@ FD PROC
 
     MOV AX, @DATA
     MOV DS, AX
+	
+	MOV AH, 09H
+    LEA DX, display_interest
+    INT 21H
+	
+	CALL Newline 
     
     ; Prompt for deposit
     MOV AH, 09H
@@ -578,7 +589,7 @@ WithdrawDone:
 	
 Withdraw ENDP
 
-LOGIN PROC
+LOGIN PROC NEAR
 start:
 
     MOV AX, @data
@@ -616,8 +627,7 @@ main_menu:
 do_exit:
     LEA DX, exitText
     CALL prINT_string
-    MOV AH, 4CH
-    INT 21h
+    CALL ExitProgram
 
 do_register:
     LEA DX, regText
