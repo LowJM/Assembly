@@ -514,6 +514,12 @@ Deposit1 PROC
     LEA DX, deposit_msg
     INT 21h
     
+	; Clear buffer
+    LEA DI, deposit+2
+    MOV CX, 6
+    MOV AL, 0
+    REP STOSB
+	
     ; Get amount input (using your existing input buffer)
     MOV AH, 0Ah
     LEA DX, deposit
@@ -525,10 +531,12 @@ Deposit1 PROC
     
     ; Multiply by 100 to convert to cents
     MOV BX, 100
+	XOR DX, DX
     MUL BX
     MOV amount, AX
     
     ; Add to balance
+	MOV AX, amount
     ADD balance, AX
     
     ; Display new balance
@@ -551,6 +559,12 @@ Withdraw PROC
     LEA DX, withdraw_msg
     INT 21h
     
+	; Clear deposit buffer (REUSE the same buffer safely)
+    LEA DI, deposit+2
+    MOV CX, 6
+    MOV AL, 0
+    REP STOSB
+	
     ; Get amount input
     MOV AH, 0Ah
     LEA DX, deposit    ; Reusing the same buffer
@@ -562,14 +576,17 @@ Withdraw PROC
     
     ; Multiply by 100 to convert to cents
     MOV BX, 100
+	XOR DX, DX
     MUL BX
     MOV amount, AX
     
     ; Check sufficient funds
+	MOV AX, amount
     CMP AX, balance
-    JG InsufficientFunds
+    JA InsufficientFunds
     
     ; Subtract from balance
+	MOV AX, amount
     SUB balance, AX
     
     ; Display new balance
