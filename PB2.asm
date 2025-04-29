@@ -3,7 +3,7 @@
 .DATA
 
   welcome_msg DB "Welcome to Public Bank System!$" ;welcome msg
-  options_msg DB "Please Choose a Function.(1=Deposit,2=Withdraw,3=fixed deposit,4=back):$" ;choose 1 option
+  options_msg DB "Please Choose a Function.(1=Deposit,2=Withdraw,3=fixed deposit,4=log out):$" ;choose 1 option
   input_char DB ?
   invalid_msg DB 0DH,0AH,"Invalid Option. Please try again.$"
   ;fong
