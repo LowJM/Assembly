@@ -369,7 +369,7 @@ GetDecimal ENDP
 ;-----------------------------------------
 ; Print 2-digit number in AL
 Print2Digit PROC
-    AAM                 ; AH = AL/10, AL = AL%10
+    AAM                 ;ascii adjust after multiply(convert binary to digit for display)
     ADD AX, 3030h       ; Convert to ASCII
     PUSH AX
     MOV DL, AH          ; Print tens digit
