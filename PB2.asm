@@ -41,8 +41,14 @@
     new_balance_msg DB 13,10,"New Balance: RM$"
     insufficient_msg DB 13,10,"Error: Insufficient funds!$"
     
+	; New error messages for validation
+    min_deposit_msg DB 13,10,"Error: Minimum deposit amount is RM20.00!$"
+    min_balance_msg DB 13,10,"Error: Minimum balance of RM20.00 must remain in account!$"
+	
     balance DW 10000  ; Initial balance (RM100.00 stored as cents)
     amount DW ?       ; Temporary amount storage
+	min_deposit EQU 2000  ; Minimum deposit amount (RM20.00 in cents)
+    min_balance EQU 2000  ; Minimum balance to maintain (RM20.00 in cents)
 	
 	;--------------------------------------
 	;error messages for validation
@@ -534,7 +540,18 @@ Deposit1 PROC
 	XOR DX, DX
     MUL BX
     MOV amount, AX
+	
+	; Check if deposit meets minimum requirement (RM20.00)
+    CMP AX, min_deposit
+    JAE ValidDeposit   ; Jump if amount >= min_deposit
     
+	; Display error message for minimum deposit
+    MOV AH, 09h
+    LEA DX, min_deposit_msg
+    INT 21h
+    JMP DepositDone
+
+ValidDeposit:
     ; Add to balance
 	MOV AX, amount
     ADD balance, AX
@@ -543,7 +560,8 @@ Deposit1 PROC
     CALL DisplayNewBalance
     
     inc transaction_count
-    
+ 
+DepositDone: 
     ; Go back to options
 	JMP Functions
 	
@@ -585,6 +603,21 @@ Withdraw PROC
     CMP AX, balance
     JA InsufficientFunds
     
+    ; Calculate remaining balance after withdrawal
+    MOV AX, balance
+    SUB AX, amount
+    
+    ; Check if withdrawal would leave minimum balance (RM20.00)
+    CMP AX, min_balance
+    JAE ValidWithdrawal   ; Jump if remaining balance >= min_balance
+    
+    ; Display error message for minimum balance
+    MOV AH, 09h
+    LEA DX, min_balance_msg
+    INT 21h
+    JMP WithdrawDone
+    
+ValidWithdrawal:
     ; Subtract from balance
 	MOV AX, amount
     SUB balance, AX
